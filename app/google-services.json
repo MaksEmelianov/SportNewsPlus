@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1052715001366",
+    "project_id": "sport-news-plus-9e979",
+    "storage_bucket": "sport-news-plus-9e979.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1052715001366:android:9054164a03502b92e3b737",
+        "android_client_info": {
+          "package_name": "com.test.sportnewsplus"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1052715001366-ufgss4i51k4sd4g6dr2gnqvtkrongr20.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTORoZgu6RBORBT-EpjQlZzWEisEF2U_c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1052715001366-ufgss4i51k4sd4g6dr2gnqvtkrongr20.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
