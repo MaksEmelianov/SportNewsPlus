@@ -55,16 +55,14 @@ public class MainActivity extends AppCompatActivity {
 //        System.out.println("configURL - " + configURL);
 //        startWebview(configURL, savedInstanceState);
 
-//        if (preferences.contains(keyURL)) {
-//            exeIfSavedURL(savedInstanceState);
-//        } else {
-//            exeIfNoSavedURL(savedInstanceState);
-//        }
-
-        exeIfNoSavedURL(savedInstanceState);
+        if (preferences.contains(keyURL)) {
+            exeIfSavedURL(savedInstanceState);
+        } else {
+            exeIfNoSavedURL(savedInstanceState);
+        }
     }
 
-    private void exeIfSavedURL(Bundle savedInstanceState) {
+    private synchronized void exeIfSavedURL(Bundle savedInstanceState) {
         if (isThereInternet(this)) {
             valueURL = preferences.getString(keyURL, defaultURL);
             startWebview(valueURL, savedInstanceState);
@@ -74,10 +72,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void exeIfNoSavedURL(Bundle savedInstanceState) {
-//        URL = getURLFromGoogleService();
-//        URL = URL.equals("") ? defaultURL : URL;
-        URL = "";
+    private synchronized void exeIfNoSavedURL(Bundle savedInstanceState) {
+        URL = getURLFromGoogleService();
+        URL = URL.equals("") ? defaultURL : URL;
         if (URL.equals("") || isEmulator() || isNotThereSim()) {
             startNews();
         } else {
@@ -86,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void saveURL(String valueURL) {
+    private synchronized void saveURL(String valueURL) {
         preferences = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString(keyURL, valueURL);
@@ -103,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void startWebview(String URL, Bundle savedInstanceState) {
+    private synchronized void startWebview(String URL, Bundle savedInstanceState) {
         webview = findViewById(R.id.webview);
         setSettingWebview();
         if (!Objects.isNull(savedInstanceState)) {
@@ -140,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
         return !Objects.isNull(networkInfo) && networkInfo.isConnectedOrConnecting();
     }
 
-    private String getURLFromGoogleService() {
+    private synchronized String getURLFromGoogleService() {
         FirebaseApp.getInstance();
         FirebaseRemoteConfig config = FirebaseRemoteConfig.getInstance();
         FirebaseRemoteConfigSettings settings = new FirebaseRemoteConfigSettings.Builder().build();
