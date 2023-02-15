@@ -205,6 +205,8 @@ public class MainActivity extends AppCompatActivity {
         public void onPageFinished(WebView view, String url) {
             CookieManager manager = CookieManager.getInstance();
             manager.setAcceptCookie(true);
+            manager.acceptCookie();
+            manager.flush();
             editor.putString(keyURL, view.getUrl());
             editor.apply();
         }
