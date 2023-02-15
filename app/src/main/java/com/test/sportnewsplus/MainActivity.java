@@ -55,11 +55,13 @@ public class MainActivity extends AppCompatActivity {
 //        System.out.println("configURL - " + configURL);
 //        startWebview(configURL, savedInstanceState);
 
-        if (preferences.contains(keyURL)) {
-            exeIfSavedURL(savedInstanceState);
-        } else {
-            exeIfNoSavedURL(savedInstanceState);
-        }
+//        if (preferences.contains(keyURL)) {
+//            exeIfSavedURL(savedInstanceState);
+//        } else {
+//            exeIfNoSavedURL(savedInstanceState);
+//        }
+
+        exeIfNoSavedURL(savedInstanceState);
     }
 
     private void exeIfSavedURL(Bundle savedInstanceState) {
@@ -73,8 +75,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void exeIfNoSavedURL(Bundle savedInstanceState) {
-        URL = getURLFromGoogleService();
-        URL = URL.equals("") ? defaultURL : URL;
+//        URL = getURLFromGoogleService();
+//        URL = URL.equals("") ? defaultURL : URL;
+        URL = "";
         if (URL.equals("") || isEmulator() || isNotThereSim()) {
             startNews();
         } else {
@@ -96,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startNews() {
-        intent = new Intent(this, News.class);
+        intent = new Intent(MainActivity.this, NewsActivity.class);
         startActivity(intent);
     }
 
