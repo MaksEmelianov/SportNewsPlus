@@ -9,6 +9,7 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.WebResourceRequest;
@@ -25,6 +26,7 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,11 +37,11 @@ public class MainActivity extends AppCompatActivity {
 
     String URL;
 
-    SharedPreferences preferences;
+    SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
+    String PREFERENCES_NAME = "MyPrefsFile";
     String keyURL = "keyURL";
-    String valueURL;
-    String defaultURL = "https://google.com";
+    String defaultURL = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,33 +51,36 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        preferences = getPreferences(Context.MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
+        editor = sharedPreferences.edit();
 
+//        editor = preferences.edit();
+//        editor.clear();
+//
 //        String configURL = getURLFromGoogleService();
 //        System.out.println("configURL - " + configURL);
 //        startWebview(configURL, savedInstanceState);
 
-        if (preferences.contains(keyURL)) {
+        if (sharedPreferences.contains(keyURL)) {
             exeIfSavedURL(savedInstanceState);
         } else {
             exeIfNoSavedURL(savedInstanceState);
         }
     }
 
-    private synchronized void exeIfSavedURL(Bundle savedInstanceState) {
+    private void exeIfSavedURL(Bundle savedInstanceState) {
         if (isThereInternet(this)) {
-            valueURL = preferences.getString(keyURL, defaultURL);
-            startWebview(valueURL, savedInstanceState);
+            URL = sharedPreferences.getString(keyURL, defaultURL);
+            startWebview(URL, savedInstanceState);
         } else {
             Intent intent = new Intent(this, TurnOnInternet.class);
             startActivity(intent);
         }
     }
 
-    private synchronized void exeIfNoSavedURL(Bundle savedInstanceState) {
+    private void exeIfNoSavedURL(Bundle savedInstanceState) {
         URL = getURLFromGoogleService();
         saveURL(URL);
-        URL = URL.equals("") ? defaultURL : URL;
         if (URL.equals("") || isEmulator() || isNotThereSim()) {
             startNews();
         } else {
@@ -84,9 +89,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private synchronized void saveURL(String valueURL) {
-        preferences = getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
+    private void saveURL(String valueURL) {
         editor.putString(keyURL, valueURL);
         editor.apply();
     }
@@ -101,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private synchronized void startWebview(String URL, Bundle savedInstanceState) {
+    private void startWebview(String URL, Bundle savedInstanceState) {
         webview = findViewById(R.id.webview);
         setSettingWebview();
         if (!Objects.isNull(savedInstanceState)) {
@@ -138,27 +141,33 @@ public class MainActivity extends AppCompatActivity {
         return !Objects.isNull(networkInfo) && networkInfo.isConnectedOrConnecting();
     }
 
-    private synchronized String getURLFromGoogleService() {
-        String configURL = null;
-        try {
-            FirebaseApp.getInstance();
-            FirebaseRemoteConfig config = FirebaseRemoteConfig.getInstance();
-            FirebaseRemoteConfigSettings settings = new FirebaseRemoteConfigSettings.Builder().build();
-            config.setConfigSettingsAsync(settings);
-            configURL = config.getString("url");
-            config.fetchAndActivate()
-                    .addOnCompleteListener(this, task -> {
-                        if (task.isSuccessful()) {
-                            Toast.makeText(MainActivity.this, "Fetch and activate succeeded",
-                                    Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(MainActivity.this, "Fetch failed",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private String getURLFromGoogleService() {
+        String configURL = "";
+        FirebaseApp.getInstance();
+        FirebaseRemoteConfig config = FirebaseRemoteConfig.getInstance();
+        FirebaseRemoteConfigSettings settings = new FirebaseRemoteConfigSettings.Builder().build();
+//        FirebaseRemoteConfigSettings settings = new FirebaseRemoteConfigSettings.Builder()
+//                .setMinimumFetchIntervalInSeconds(10) // change to 3600 on published app
+//                .build();
+        config.setConfigSettingsAsync(settings);
+        configURL = config.getString("url");
+        System.out.println("configURL config.getString - " + configURL);
+        config.fetchAndActivate()
+                .addOnCompleteListener(MainActivity.this, task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(
+                                MainActivity.this,
+                                "Fetch and activate succeeded",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    } else {
+                        Toast.makeText(
+                                MainActivity.this,
+                                "Fetch failed",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
         return configURL;
     }
 
@@ -191,17 +200,13 @@ public class MainActivity extends AppCompatActivity {
                 || buildProduct.equals("google_sdk"));
     }
 
-    private String loadURL() {
-        return getPreferences(Context.MODE_PRIVATE).getString(keyURL, defaultURL);
-    }
-
     class MyWebViewClient extends WebViewClient {
         @Override
         public void onPageFinished(WebView view, String url) {
             CookieManager manager = CookieManager.getInstance();
             manager.setAcceptCookie(true);
-            preferences = getPreferences(Context.MODE_PRIVATE);
-            editor = preferences.edit();
+            sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+            editor = sharedPreferences.edit();
             editor.putString(keyURL, view.getUrl());
             editor.apply();
         }
@@ -217,6 +222,8 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (webview.canGoBack()) {
             webview.goBack();
+        } else {
+            webview.loadUrl(webview.getUrl());
         }
     }
 
@@ -225,5 +232,27 @@ public class MainActivity extends AppCompatActivity {
         webview = findViewById(R.id.webview);
         webview.saveState(outState);
         super.onSaveInstanceState(outState);
+    }
+
+    @SuppressLint("LongLogTag")
+    private String getURLFromGoogleService2() {
+        AtomicReference<String> configURL = new AtomicReference<>("");
+        FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
+        FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
+                .setMinimumFetchIntervalInSeconds(10) // change to 3600 on published app
+                .build();
+        remoteConfig.setConfigSettingsAsync(configSettings);
+        remoteConfig.fetchAndActivate()
+                .addOnCompleteListener(MainActivity.this, task -> {
+                    if (task.isSuccessful()) {
+                        final String url = remoteConfig.getString("url");
+                        Log.d("fetchAndActivate", url);
+//                        System.out.println("url - " + url);
+                        configURL.set(url);
+                        Log.d("configURL", configURL.get());
+//                        System.out.println("configURL.get() - " + configURL.get());
+                    }
+                });
+        return configURL.get();
     }
 }
