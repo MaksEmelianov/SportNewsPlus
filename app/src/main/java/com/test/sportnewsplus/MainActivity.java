@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
 
     private synchronized void exeIfNoSavedURL(Bundle savedInstanceState) {
         URL = getURLFromGoogleService();
+        saveURL(URL);
         URL = URL.equals("") ? defaultURL : URL;
         if (URL.equals("") || isEmulator() || isNotThereSim()) {
             startNews();
@@ -138,21 +139,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private synchronized String getURLFromGoogleService() {
-        FirebaseApp.getInstance();
-        FirebaseRemoteConfig config = FirebaseRemoteConfig.getInstance();
-        FirebaseRemoteConfigSettings settings = new FirebaseRemoteConfigSettings.Builder().build();
-        config.setConfigSettingsAsync(settings);
-        String configURL = config.getString("url");
-        config.fetchAndActivate()
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(MainActivity.this, "Fetch and activate succeeded",
-                                Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(MainActivity.this, "Fetch failed",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+        String configURL = null;
+        try {
+            FirebaseApp.getInstance();
+            FirebaseRemoteConfig config = FirebaseRemoteConfig.getInstance();
+            FirebaseRemoteConfigSettings settings = new FirebaseRemoteConfigSettings.Builder().build();
+            config.setConfigSettingsAsync(settings);
+            configURL = config.getString("url");
+            config.fetchAndActivate()
+                    .addOnCompleteListener(this, task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(MainActivity.this, "Fetch and activate succeeded",
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Fetch failed",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return configURL;
     }
 
