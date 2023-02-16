@@ -46,7 +46,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
             Intent intent = new Intent(context, ContentActivity.class);
             intent.putExtra("title", article.getTitle());
             intent.putExtra("desc", article.getDescription());
-            intent.putExtra("url", article.getUrl());
+            intent.putExtra("imageUrl",article.getUrlToImage());
             context.startActivity(intent);
         });
     }

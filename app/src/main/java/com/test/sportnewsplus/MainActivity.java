@@ -234,25 +234,20 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
     }
 
-    @SuppressLint("LongLogTag")
-    private String getURLFromGoogleService2() {
-        AtomicReference<String> configURL = new AtomicReference<>("");
-        FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
-        FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
-                .setMinimumFetchIntervalInSeconds(10) // change to 3600 on published app
-                .build();
-        remoteConfig.setConfigSettingsAsync(configSettings);
-        remoteConfig.fetchAndActivate()
-                .addOnCompleteListener(MainActivity.this, task -> {
-                    if (task.isSuccessful()) {
-                        final String url = remoteConfig.getString("url");
-                        Log.d("fetchAndActivate", url);
-//                        System.out.println("url - " + url);
-                        configURL.set(url);
-                        Log.d("configURL", configURL.get());
-//                        System.out.println("configURL.get() - " + configURL.get());
-                    }
-                });
-        return configURL.get();
-    }
+//    private String getURLFromGoogleService2() {
+//        AtomicReference<String> configURL = new AtomicReference<>("");
+//        FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
+//        FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
+//                .setMinimumFetchIntervalInSeconds(10) // change to 3600 on published app
+//                .build();
+//        remoteConfig.setConfigSettingsAsync(configSettings);
+//        remoteConfig.fetchAndActivate()
+//                .addOnCompleteListener(MainActivity.this, task -> {
+//                    if (task.isSuccessful()) {
+//                        final String url = remoteConfig.getString("url");
+//                        configURL.set(url);
+//                    }
+//                });
+//        return configURL.get();
+//    }
 }
